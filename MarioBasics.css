@@ -11,8 +11,9 @@ body {
   width: 200px;
   height: 257px;
   clip-path: inset(135px 48px 1px 104px);
-  position: relative;
-  top: 33vh;
+  position: absolute; /* <-- Change this */
+  top: 2vh; /* Or top: 0; if you want to control from JS */
+  left: 0;
 }
 #gold {
   background-image: url(assets/gold.webp);
@@ -22,7 +23,7 @@ body {
   scale: 0.1;
   position: relative;
   left: 77vw;
-  top: -9.4vh;
+  top: 18.1vh;
 }
 
 #cobblestone1 {
@@ -51,7 +52,7 @@ body {
   width: 327px;
   height: 477px;
   position: relative;
-  top: -77.8vh;
+  top: -50vh;
   scale: 0.3;
   left: 35vw;
 }

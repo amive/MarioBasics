@@ -18,104 +18,153 @@ document.addEventListener("keyup", (e) => {
 
 function updatePlayer() {
   let newTop = player.offsetTop;
+  let newLeft = player.offsetLeft;
 
+  // Horizontal movement
   if (keysHeld["a"]) {
-    const left = Math.max(
-      0,
-      Math.min(
-        player.offsetLeft - 25,
-        body.offsetWidth - player.offsetWidth - 10
-      )
-    );
-    player.style.left = left + "px";
+    newLeft = Math.max(0, player.offsetLeft - 15);
     player.style.backgroundImage = 'url("assets/runLeft.png")';
     player.style.backgroundSize = "cover";
     player.style.width = "200px";
   } else if (keysHeld["d"]) {
-    const right = Math.max(
-      0,
-      Math.min(
-        player.offsetLeft + 10,
-        body.offsetWidth - player.offsetWidth + 10
-      )
+    // Fixed: Properly constrain right movement
+    newLeft = Math.min(
+      body.offsetWidth - player.offsetWidth, // This is the maximum allowed left position
+      player.offsetLeft + 15
     );
-    player.style.left = right + "px";
     player.style.backgroundImage = 'url("assets/runRight.png")';
     player.style.backgroundSize = "cover";
     player.style.width = "200px";
-    player.style.width = 200 + "px";
   }
+
   // Jump initiation
   if (keysHeld["w"] && !player.isJumping) {
-    player.velocityY = -30; // jump strength
+    player.velocityY = -20; // jump strength
     player.isJumping = true;
     player.style.backgroundImage = 'url("assets/jumpUp.png")';
-    player.style.width = 210 + "px";
+    player.style.width = "210px";
   }
 
   // Gravity
   player.velocityY += 1; // gravity strength
 
   // Apply vertical movement
-  newTop = player.offsetTop + player.velocityY;
-  const ground = body.offsetHeight / 4.7;
+  newTop += player.velocityY;
+  const ground = body.offsetHeight / 3.83;
 
-  if (newTop >= ground) {
+  // Get all rectangles for collision detection
+  const playerRect = {
+    top: newTop,
+    left: newLeft,
+    right: newLeft + player.offsetWidth,
+    bottom: newTop + player.offsetHeight,
+  };
+
+  const cobbleRects = [
+    {
+      element: cobblestone1,
+      rect: cobblestone1.getBoundingClientRect(),
+    },
+    {
+      element: cobblestone2,
+      rect: cobblestone2.getBoundingClientRect(),
+    },
+  ];
+
+  // Reset collision flags
+  let collisionTop = false;
+  let collisionBottom = false;
+  let collisionLeft = false;
+  let collisionRight = false;
+
+  for (const cobble of cobbleRects) {
+    const cobbleRect = cobble.rect;
+    const cobbleTop = cobbleRect.top - body.getBoundingClientRect().top + 10;
+    const cobbleLeft = cobbleRect.left - body.getBoundingClientRect().left - 97;
+
+    const cobbleRectAdjusted = {
+      top: cobbleTop,
+      left: cobbleLeft + 152.5,
+      right: cobbleLeft + cobbleRect.width,
+      bottom: cobbleTop + cobbleRect.height,
+    };
+
+    // Check if player is colliding with cobblestone
+    if (
+      playerRect.right > cobbleRectAdjusted.left &&
+      playerRect.left < cobbleRectAdjusted.right &&
+      playerRect.bottom > cobbleRectAdjusted.top &&
+      playerRect.top < cobbleRectAdjusted.bottom
+    ) {
+      // Calculate overlap amounts
+      const overlapTop = playerRect.bottom - cobbleRectAdjusted.top;
+      const overlapBottom = cobbleRectAdjusted.bottom - playerRect.top;
+      const overlapLeft = playerRect.right - cobbleRectAdjusted.left;
+      const overlapRight = cobbleRectAdjusted.right - playerRect.left;
+
+      // Find the smallest overlap to determine collision side
+      const minOverlap = Math.min(
+        overlapTop,
+        overlapBottom,
+        overlapLeft,
+        overlapRight
+      );
+
+      if (minOverlap === overlapTop) {
+        // Collision from top (landing on cobblestone)
+        newTop = cobbleRectAdjusted.top - player.offsetHeight;
+        player.velocityY = 0;
+        player.isJumping = false;
+        collisionTop = true;
+      } else if (minOverlap === overlapBottom) {
+        // Collision from bottom (hitting head)
+        newTop = cobbleRectAdjusted.bottom;
+        player.velocityY = 0;
+        collisionBottom = true;
+      } else if (minOverlap === overlapLeft) {
+        // Collision from left
+        newLeft = cobbleRectAdjusted.left - player.offsetWidth;
+        collisionLeft = true;
+      } else if (minOverlap === overlapRight) {
+        // Collision from right
+        console.log("collisionRight");
+        newLeft = cobbleRectAdjusted.right;
+        collisionRight = true;
+      }
+    }
+  }
+
+  // Ground collision if no cobblestone collision
+  if (!collisionTop && newTop >= ground) {
     newTop = ground;
     player.velocityY = 0;
     player.isJumping = false;
-    player.style.backgroundImage = 'url("assets/idle.png")';
-    player.style.width = 200 + "px";
-  } else if (player.velocityY > 0 && player.isJumping) {
-    player.style.backgroundImage = 'url("assets/jumpDown.png")';
-    player.style.width = 215 + "px";
+    player.style.width = "200px";
   }
+
+  // Update visuals when falling
+  if (player.velocityY > 0 && player.isJumping && !collisionTop) {
+    player.style.backgroundImage = 'url("assets/jumpDown.png")';
+    player.style.width = "215px";
+    setTimeout(() => {
+      player.style.backgroundImage = 'url("assets/idle.png")';
+      player.style.width = "200px";
+    }, 300);
+  }
+
+  // Apply final positions (with additional boundary checks)
+  newLeft = Math.max(
+    0,
+    Math.min(newLeft, body.offsetWidth - player.offsetWidth)
+  );
+  newTop = Math.min(newTop, ground); // Prevent falling below ground
 
   player.style.top = newTop + "px";
-  const playerRect = player.getBoundingClientRect();
-  const cobbleRects = [
-    cobblestone1.getBoundingClientRect(),
-    cobblestone2.getBoundingClientRect(),
-  ];
+  player.style.left = newLeft + "px";
 
-  for (const cobbleRect of cobbleRects) {
-    // Check horizontal overlap
-    const horizontalOverlap =
-      playerRect.right > cobbleRect.left && playerRect.left < cobbleRect.right;
-    // Check if player is falling onto the cobblestone from above
-    const isFalling =
-      player.velocityY > 0 &&
-      playerRect.bottom <= cobbleRect.top + player.velocityY &&
-      newTop + player.offsetHeight >=
-        cobbleRect.top - body.getBoundingClientRect().top;
+  console.log("keysHeld:", keysHeld);
+  console.log("newLeft before collisions:", newLeft);
 
-    if (horizontalOverlap && isFalling) {
-      // Land on top of cobblestone
-      newTop =
-        cobbleRect.top - body.getBoundingClientRect().top - player.offsetHeight;
-      player.velocityY = 0;
-      player.isJumping = false;
-      player.style.backgroundImage = 'url("assets/idle.png")';
-      player.style.width = 200 + "px";
-      player.style.top = newTop + "px";
-      continue; // Skip further collision checks for this frame
-    }
-
-    // Prevent passing through cobblestone from the sides or bottom
-    // Only allow passing through if jumping up
-    const isHittingFromBelow =
-      player.velocityY < 0 &&
-      playerRect.top >= cobbleRect.bottom - player.velocityY &&
-      newTop <= cobbleRect.bottom - body.getBoundingClientRect().top;
-
-    if (horizontalOverlap && isHittingFromBelow) {
-      // Stop upward movement
-      newTop = cobbleRect.bottom - body.getBoundingClientRect().top;
-      player.velocityY = 0;
-      player.style.top = newTop + "px";
-      continue;
-    }
-  }
   requestAnimationFrame(updatePlayer);
 }
 
