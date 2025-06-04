@@ -127,7 +127,7 @@ function updatePlayer() {
         collisionLeft = true;
       } else if (minOverlap === overlapRight) {
         // Collision from right
-        console.log("collisionRight");
+
         newLeft = cobbleRectAdjusted.right;
         collisionRight = true;
       }
@@ -161,9 +161,6 @@ function updatePlayer() {
 
   player.style.top = newTop + "px";
   player.style.left = newLeft + "px";
-
-  console.log("keysHeld:", keysHeld);
-  console.log("newLeft before collisions:", newLeft);
 
   requestAnimationFrame(updatePlayer);
 }
