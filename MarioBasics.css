@@ -2,17 +2,17 @@ body {
   overflow: hidden;
   background-image: url("assets/2d_world.jpg");
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: cover;
   user-select: none;
   touch-action: manipulation;
+  height: 33.9vh;
 }
 #player {
   background-image: url("assets/idle.png");
   width: 200px;
   height: 257px;
-  clip-path: inset(135px 48px 1px 104px);
   position: absolute; /* <-- Change this */
-  top: 2vh; /* Or top: 0; if you want to control from JS */
+  top: 20vh; /* Or top: 0; if you want to control from JS */
   left: 0;
 }
 #gold {
@@ -21,9 +21,9 @@ body {
   width: 720px;
   height: 720px;
   scale: 0.1;
-  position: relative;
+  position: absolute;
   left: 77vw;
-  top: 18.1vh;
+  top: 19.1vh;
 }
 
 #cobblestone1 {
@@ -33,7 +33,7 @@ body {
   height: 510px;
   scale: 0.15;
   position: absolute;
-  left: 4vw;
+  left: 7vw;
   top: 21.9vh;
 }
 #cobblestone2 {
@@ -43,7 +43,7 @@ body {
   height: 510px;
   scale: 0.15;
   position: absolute;
-  left: 4vw;
+  left: 7vw;
   top: 30vh;
 }
 #zombie {
@@ -51,8 +51,8 @@ body {
   background-repeat: no-repeat;
   width: 327px;
   height: 477px;
-  position: relative;
-  top: -50vh;
-  scale: 0.3;
+  position: absolute;
+  top: 25.4vh;
+  scale: 0.4;
   left: 35vw;
 }
